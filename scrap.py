@@ -2,7 +2,6 @@
 # ensure you have pip installer
 import requests 
 from bs4 import BeautifulSoup 
-import time
 # L'url du site que je souhaite Scraper
 baseUrl = 'https://www.studyrama.com'
 uri = "/formations/annuaire-des-formations?btnRechercherFormations=rechercher&metier=20039043&page="
