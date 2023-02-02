@@ -21,7 +21,6 @@ def getLinks(url, nbPg):
 
 #fonction qui permet de "crawler" sur mon site et recuperer tous les liens sur la page visée
 def getEndpoints(soup):
-    time.sleep(1)
     #ATTENTION, la suite de cette fonction ne marche que pour mon site, c'est un exemple
     #l'exercice etant de refaire une fonction pour VOTRE site a scraper
     ul = soup.find('ul', { "class": "trackingContainer"})
