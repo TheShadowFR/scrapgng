@@ -2,10 +2,15 @@
 # ensure you have pip installer
 import requests 
 from bs4 import BeautifulSoup 
+
+import csv
+
+
+
+
 # L'url du site que je souhaite Scraper
 baseUrl = 'https://www.studyrama.com'
-uri = "/formations/annuaire-des-formations?btnRechercherFormations=rechercher&metier=20039043&page="
-
+uri = "/formations/annuaire-des-formations?btnRechercherFormations=rechercher&page="
 
 #Genere des liens avec l'argument "page" qui s'incrémente
 def getLinks(url, nbPg):
@@ -30,8 +35,9 @@ def getEndpoints(soup):
         try: 
             links.append(a['href'])
         except:
-            print(li)
-            print('ERROR: No link')
+            pass
+            # print(li)
+            # print('ERROR: No link')
     return links
 
 def swoup(url, process):
@@ -60,11 +66,39 @@ def addBaseUrl(baseUrl, urls):
 
 #Execution
 urls = []
-for link in getLinks(baseUrl + uri, 4):
+for link in getLinks(baseUrl + uri, 1674):
+# for link in getLinks(baseUrl + uri, 1):
     print("Checking " + link)
     urls.extend(addBaseUrl(baseUrl, swoup(link, getEndpoints)))
+    print("You'got actually :"+ str(len(urls)) + " links !")
         
-print(urls)
+print(urls, "Pshatek got : " + str(len(urls)) + " links !")
 
 
-  
+#Lire le fichier
+# with open("links.csv", 'r') as file:
+#     csvreader = csv.reader(file)
+#     for row in csvreader:
+#         print(row)
+
+
+rows = []
+i = 0
+for url in urls:
+    print("Writing : " + str(i))
+    row = {}
+    row['id'] = i
+    row['category'] = ""
+    row['link'] = url
+    rows.append(row)
+    i += 1
+
+
+fieldnames = ['id', 'category', 'link']
+with open('links.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows)
+
+
+print("Done")
