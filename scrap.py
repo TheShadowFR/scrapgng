@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup 
 
 import csv
-
+import re
 
 
 
@@ -51,9 +51,12 @@ def swoup(url, process):
             #Je retourne l'execution de ma fonction process prenan ma SWOUP SWOUP en parametre
             return process(soup)
         except Exception:
-            print("ERROR: Impossible to process ! " )
+            print("ERROR: Impossible to process ! On :" + str(url))
+            return False
+
     else:
-        print("ERROR: Failed Connect")
+        print("ERROR: Failed Connect on :" + str(url))
+        return False
     return 
 
 #concatene mes liens a l'url
@@ -63,42 +66,121 @@ def addBaseUrl(baseUrl, urls):
         res.append(baseUrl + url)
     return res
 
+def fileWriter(file,fieldnames, data):
+    with open(file, 'w', encoding='UTF8', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(data)
+
+
 
 #Execution
-urls = []
-for link in getLinks(baseUrl + uri, 1674):
-# for link in getLinks(baseUrl + uri, 1):
-    print("Checking " + link)
-    urls.extend(addBaseUrl(baseUrl, swoup(link, getEndpoints)))
-    print("You'got actually :"+ str(len(urls)) + " links !")
+# urls = []
+# for link in getLinks(baseUrl + uri, 1674):
+# # for link in getLinks(baseUrl + uri, 1):
+#     print("Checking " + link)
+#     urls.extend(addBaseUrl(baseUrl, swoup(link, getEndpoints)))
+#     print("You'got actually :"+ str(len(urls)) + " links !")
         
-print(urls, "Pshatek got : " + str(len(urls)) + " links !")
+# print(urls, "Pshatek got : " + str(len(urls)) + " links !")
+def tryToCleanOrReturnBlank(str):
+    try:
+        result = str.getText().strip()
+    except:
+        result = ""
+    return result
 
 
-#Lire le fichier
-# with open("links.csv", 'r') as file:
-#     csvreader = csv.reader(file)
-#     for row in csvreader:
-#         print(row)
+def getInfoByPage(soup):
+
+    fiches = []
+    contacts = soup.find("div",{"class": "coordonnees"})
+    if contacts is not None:
+        tabs = contacts.findAll('li', {"class":"accordeon-item"})
+        if tabs is not None:
+            for contact in tabs:
+                name = tryToCleanOrReturnBlank(contact.find("div", {"class": "accordeon-header"}))
+                coord = contact.find("div", {"class": "accordeon-body"})
+                adress = coord.find("p")
+                tel = tryToCleanOrReturnBlank(coord.find("a", {"class": "tel"}))
+                email = tryToCleanOrReturnBlank(coord.find("a", {"class": "email"}))
+                title = tryToCleanOrReturnBlank(soup.find("title"))
+
+                try:
+                    adress = adress.getText()
+                    cleanArrAdress = []
+                    for ele in str(adress).split("\n"):
+                        # cleanAdress.push(ele)
+                        if ele.strip() != "":
+                            cleanArrAdress.append(ele.strip())
+                    
+                    realAdress = cleanArrAdress[0]
+                    realCC = cleanArrAdress[1]
+                    realCountry = cleanArrAdress[2]
+                except:
+                    adress= ""
+                    realAdress= ""
+                    realCC= ""
+                    realCountry= ""
+                    cleanArrAdress = []
+        
+            
+                # adress = [item.strip() for item in adress if str(item)]
+                fiche = {
+                    "title": title.replace('- Studyrama', ""),
+                    "name": name,
+                    "adress": " ".join(cleanArrAdress),
+                    "realAdress": realAdress,
+                    "departement": realCC,
+                    "country": realCountry,
+                    "tel": tel,
+                    "email": email
+                }
+
+                fiches.append(fiche)
+    return fiches
+
+with open('links.csv', 'r', encoding='UTF8', newline='') as f:
+    reader = csv.DictReader(f)
+    i = 0
+    rows = []
+    errors = []
+    error = 0
+    for l in reader: 
+        # if i < 1000: 
+        Bakk = swoup(l['link'], getInfoByPage)
+        if Bakk != False: 
+            rows.extend(Bakk)
+        else:
+            errors.append({"id":error, "link": l["link"]})
+
+        i += 1
+fieldnamesFiches =  ["title","name","adress", "realAdress", "departement", "country", "tel","email"]
+fileWriter('contacts.csv',fieldnamesFiches, rows)
+fieldErrors = ["id", "link"]
+fileWriter('errors.csv',fieldErrors, errors)
+
+# rows = []
+# i = 0
+# for url in urls:
+#     print("Writing : " + str(i))
+#     row = {}
+#     row['id'] = i
+#     row['category'] = ""
+#     row['link'] = url
+#     rows.append(row)
+#     i += 1
 
 
-rows = []
-i = 0
-for url in urls:
-    print("Writing : " + str(i))
-    row = {}
-    row['id'] = i
-    row['category'] = ""
-    row['link'] = url
-    rows.append(row)
-    i += 1
+# fieldnames = ['id', 'category', 'link']
+# with open('links.csv', 'w', encoding='UTF8', newline='') as f:
+#     writer = csv.DictWriter(f, fieldnames=fieldnames)
+#     writer.writeheader()
+#     writer.writerows(rows)
 
 
-fieldnames = ['id', 'category', 'link']
-with open('links.csv', 'w', encoding='UTF8', newline='') as f:
-    writer = csv.DictWriter(f, fieldnames=fieldnames)
-    writer.writeheader()
-    writer.writerows(rows)
+
+
 
 
 print("Done")
