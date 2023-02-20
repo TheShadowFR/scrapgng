@@ -9,14 +9,14 @@ from Studyrama import Studyrama
 from Scrapper import Scrapper
 
 
-test = Studyrama(
+instance = Studyrama(
     'https://www.studyrama.com',
     "/formations/annuaire-des-formations?btnRechercherFormations=rechercher&page=",
     "/formations/annuaire-des-formations?btnRechercherFormations=rechercher&page=",
     1
     )
 
-scrapyCoco = Scrapper(test, 'links.csv', 'contacts.csv','errors.csv')
+scrapyCoco = Scrapper(instance, 'links.csv', 'contacts.csv','errors.csv')
 
 scrapyCoco.exec()
 
