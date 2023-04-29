@@ -1,10 +1,5 @@
 # ensure you have Python (3  or latest)
 # ensure you have pip installer
-import requests 
-from bs4 import BeautifulSoup 
-
-import csv
-import re
 from Studyrama import Studyrama
 from Scrapper import Scrapper
 
